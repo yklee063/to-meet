@@ -11,13 +11,11 @@ function Result() {
   const [participants, setParticipants] = useState([])
   const [votes, setVotes] = useState([])
   const [loading, setLoading] = useState(true)
-  const [copied, setCopied] = useState(false)
 
   const todayDate = new Date(); todayDate.setHours(0,0,0,0)
   const [calYear, setCalYear] = useState(todayDate.getFullYear())
   const [calMonth, setCalMonth] = useState(todayDate.getMonth())
 
-  // 카카오 SDK 초기화
   useEffect(() => {
     if (window.Kakao && !window.Kakao.isInitialized()) {
       window.Kakao.init(KAKAO_JS_KEY)
@@ -112,25 +110,7 @@ function Result() {
     const dow = ['일','월','화','수','목','금','토'][date.getDay()]
     const status = getStatus(top.dateKey)
     const statusText = status === 'possible' ? '전원 가능 ✓' : status === 'maybe' ? '애매 (1명 불가)' : '일부 불가'
-    return { text: `${Number(mo)}월 ${Number(da)}일 (${dow}) — ${statusText}`, mo, da, dow, statusText }
-  }
-
-  const buildShareText = () => {
-    const top = getTopDateText()
-    if (!top) return `[${room?.name}] 날짜 조율 결과를 확인해보세요!\n${window.location.href}`
-    return `[${room?.name}] 날짜 조율 완료!\n🏆 추천: ${top.text}\n\n결과 보기 👇\n${window.location.href}`
-  }
-
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href)
-    setCopied('link')
-    setTimeout(() => setCopied(false), 2000)
-  }
-
-  const handleCopyResult = () => {
-    navigator.clipboard.writeText(buildShareText())
-    setCopied('text')
-    setTimeout(() => setCopied(false), 2000)
+    return { text: `${Number(mo)}월 ${Number(da)}일 (${dow}) — ${statusText}` }
   }
 
   const handleKakaoShare = () => {
@@ -139,10 +119,7 @@ function Result() {
       return
     }
     const top = getTopDateText()
-    const description = top
-      ? `🏆 추천: ${top.text}`
-      : '날짜 조율 결과를 확인해보세요!'
-
+    const description = top ? `🏆 추천: ${top.text}` : '날짜 조율 결과를 확인해보세요!'
     window.Kakao.Share.sendDefault({
       objectType: 'feed',
       content: {
@@ -334,50 +311,23 @@ function Result() {
           </div>
         </div>
 
-        {/* 결과 공유 */}
+        {/* 결과 공유 — 카카오만 */}
         <div style={{ background: '#fff', borderRadius: '16px', padding: '1.25rem', border: '0.5px solid #e0e0e0', marginBottom: '2rem' }}>
           <div style={{ fontSize: '13px', fontWeight: '600', color: '#333', marginBottom: '1rem' }}>
             📤 결과 공유하기
           </div>
-
-          {/* 링크 박스 */}
-          <div style={{ background: '#f0efff', border: '0.5px solid #c5c2f0', borderRadius: '10px', padding: '10px 14px', fontSize: '12px', color: '#534AB7', wordBreak: 'break-all', marginBottom: '10px' }}>
-            {window.location.href}
-          </div>
-
-          {/* 카카오톡 공유 버튼 */}
           <button onClick={handleKakaoShare} style={{
-            width: '100%', padding: '12px', borderRadius: '10px',
+            width: '100%', padding: '13px', borderRadius: '10px',
             border: 'none', background: '#FEE500',
-            color: '#191919', fontSize: '14px', fontWeight: '600',
-            cursor: 'pointer', marginBottom: '8px',
+            color: '#191919', fontSize: '15px', fontWeight: '600',
+            cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
           }}>
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <svg width="20" height="20" viewBox="0 0 18 18" fill="none">
               <path d="M9 1C4.582 1 1 3.896 1 7.5c0 2.332 1.438 4.376 3.6 5.572L3.75 17l4.418-2.95C8.44 14.08 8.717 14.1 9 14.1c4.418 0 8-2.896 8-6.6S13.418 1 9 1z" fill="#191919"/>
             </svg>
             카카오톡으로 공유하기
           </button>
-
-          {/* 링크/텍스트 복사 버튼 */}
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={handleCopyLink} style={{
-              flex: 1, padding: '11px', borderRadius: '10px',
-              border: '0.5px solid #c5c2f0',
-              background: copied === 'link' ? '#E1F5EE' : '#f0efff',
-              color: copied === 'link' ? '#085041' : '#534AB7',
-              fontSize: '13px', fontWeight: '500', cursor: 'pointer', transition: 'all 0.2s'
-            }}>
-              {copied === 'link' ? '✓ 복사됨!' : '🔗 링크 복사'}
-            </button>
-            <button onClick={handleCopyResult} style={{
-              flex: 1, padding: '11px', borderRadius: '10px',
-              border: 'none', background: '#534AB7',
-              color: '#fff', fontSize: '13px', fontWeight: '500', cursor: 'pointer'
-            }}>
-              {copied === 'text' ? '✓ 복사됨!' : '📋 결과 텍스트 복사'}
-            </button>
-          </div>
         </div>
 
       </div>
