@@ -316,6 +316,19 @@ function Result() {
           <div style={{ fontSize: '13px', fontWeight: '600', color: '#333', marginBottom: '1rem' }}>
             📤 결과 공유하기
           </div>
+          {/* 링크 박스 */}
+          <div style={{
+            background: '#f0efff',
+            border: '0.5px solid #c5c2f0',
+            borderRadius: '10px',
+            padding: '10px 14px',
+            fontSize: '12px',
+            color: '#534AB7',
+            wordBreak: 'break-all',
+            marginBottom: '10px'
+          }}>
+            {window.location.href}
+          </div>
           <button onClick={handleKakaoShare} style={{
             width: '100%', padding: '13px', borderRadius: '10px',
             border: 'none', background: '#FEE500',

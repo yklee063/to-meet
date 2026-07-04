@@ -24,7 +24,7 @@ function ShareRoom() {
       content: {
         title: '투밋 — 날짜 조율 초대',
         description: '링크를 눌러 가능한 날짜를 선택해주세요!',
-        imageUrl: 'https://to-meet.vercel.app/icons.svg',
+        imageUrl: 'https://to-meet.vercel.app/og-image.svg'
         link: {
           mobileWebUrl: link,
           webUrl: link,
@@ -69,7 +69,20 @@ function ShareRoom() {
         <p style={{ fontSize: '13px', color: '#888', marginBottom: '2rem' }}>
           친구들에게 공유하고 날짜를 정해보세요
         </p>
-
+        {/* 링크 박스 */}
+        <div style={{
+          background: '#f0efff',
+          border: '0.5px solid #c5c2f0',
+          borderRadius: '10px',
+          padding: '12px 16px',
+          fontSize: '13px',
+          color: '#534AB7',
+          wordBreak: 'break-all',
+          marginBottom: '1rem',
+          textAlign: 'left'
+        }}>
+          {link}
+        </div>
         {/* 카카오톡 공유 버튼 */}
         <button onClick={handleKakaoShare} style={{
           width: '100%', padding: '13px', borderRadius: '10px',
