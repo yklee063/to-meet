@@ -125,7 +125,7 @@ function Result() {
       content: {
         title: `[${room?.name}] 날짜 조율 완료!`,
         description,
-        imageUrl: 'https://to-meet.vercel.app/icons.svg',
+        imageUrl: 'https://to-meet.vercel.app/icons.png',
         link: {
           mobileWebUrl: window.location.href,
           webUrl: window.location.href,

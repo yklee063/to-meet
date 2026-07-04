@@ -24,7 +24,7 @@ function ShareRoom() {
       content: {
         title: '투밋 — 날짜 조율 초대',
         description: '링크를 눌러 가능한 날짜를 선택해주세요!',
-        imageUrl: 'https://to-meet.vercel.app/og-image.svg'
+        imageUrl: 'https://to-meet.vercel.app/og-image.png',
         link: {
           mobileWebUrl: link,
           webUrl: link,
