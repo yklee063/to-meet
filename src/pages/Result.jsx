@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
+const KAKAO_JS_KEY = '65133d3f6b915284e9d3e9ae51522d50'
+
 function Result() {
   const { code } = useParams()
   const navigate = useNavigate()
@@ -14,6 +16,13 @@ function Result() {
   const todayDate = new Date(); todayDate.setHours(0,0,0,0)
   const [calYear, setCalYear] = useState(todayDate.getFullYear())
   const [calMonth, setCalMonth] = useState(todayDate.getMonth())
+
+  // 카카오 SDK 초기화
+  useEffect(() => {
+    if (window.Kakao && !window.Kakao.isInitialized()) {
+      window.Kakao.init(KAKAO_JS_KEY)
+    }
+  }, [])
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -73,43 +82,6 @@ function Result() {
   const canGoPrev = calYear > todayDate.getFullYear() ||
     (calYear === todayDate.getFullYear() && calMonth > todayDate.getMonth())
 
-  // 결과 공유 텍스트 생성
-  const buildShareText = () => {
-    const top = rankedDates[0]
-    if (!top) return `[${room?.name}] 날짜 조율 결과를 확인해보세요!\n${window.location.href}`
-    const [y, mo, da] = top.dateKey.split('-')
-    const date = new Date(Number(y), Number(mo) - 1, Number(da))
-    const dow = ['일','월','화','수','목','금','토'][date.getDay()]
-    const status = getStatus(top.dateKey)
-    const statusText = status === 'possible' ? '전원 가능 ✓' : status === 'maybe' ? '애매 (1명 불가)' : '일부 불가'
-    return `[${room?.name}] 날짜 조율 완료!\n🏆 추천: ${Number(mo)}월 ${Number(da)}일 (${dow}) — ${statusText}\n\n결과 보기 👇\n${window.location.href}`
-  }
-
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
-  const handleCopyResult = () => {
-    navigator.clipboard.writeText(buildShareText())
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
-  if (loading) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif', color: '#888' }}>
-      불러오는 중...
-    </div>
-  )
-
-  const totalDays = new Date(calYear, calMonth + 1, 0).getDate()
-  const firstDay = new Date(calYear, calMonth, 1).getDay()
-  const DOW = ['일', '월', '화', '수', '목', '금', '토']
-  const MEDAL_BG = ['#FEF9C3', '#F1F0F0', '#FAEEDA']
-  const MEDAL_COLOR = ['#CA8A04', '#5F5E5A', '#854F0B']
-  const MEDAL_EMOJI = ['🥇', '🥈', '🥉']
-
   const rankedDates = (() => {
     if (doneParts.length === 0) return []
     const noCounts = {}
@@ -131,6 +103,81 @@ function Result() {
     }
     return candidates.sort((a, b) => a.noCount - b.noCount).slice(0, 3)
   })()
+
+  const getTopDateText = () => {
+    const top = rankedDates[0]
+    if (!top) return null
+    const [y, mo, da] = top.dateKey.split('-')
+    const date = new Date(Number(y), Number(mo) - 1, Number(da))
+    const dow = ['일','월','화','수','목','금','토'][date.getDay()]
+    const status = getStatus(top.dateKey)
+    const statusText = status === 'possible' ? '전원 가능 ✓' : status === 'maybe' ? '애매 (1명 불가)' : '일부 불가'
+    return { text: `${Number(mo)}월 ${Number(da)}일 (${dow}) — ${statusText}`, mo, da, dow, statusText }
+  }
+
+  const buildShareText = () => {
+    const top = getTopDateText()
+    if (!top) return `[${room?.name}] 날짜 조율 결과를 확인해보세요!\n${window.location.href}`
+    return `[${room?.name}] 날짜 조율 완료!\n🏆 추천: ${top.text}\n\n결과 보기 👇\n${window.location.href}`
+  }
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(window.location.href)
+    setCopied('link')
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleCopyResult = () => {
+    navigator.clipboard.writeText(buildShareText())
+    setCopied('text')
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleKakaoShare = () => {
+    if (!window.Kakao || !window.Kakao.isInitialized()) {
+      alert('카카오 SDK가 로드되지 않았어요. 잠시 후 다시 시도해주세요.')
+      return
+    }
+    const top = getTopDateText()
+    const description = top
+      ? `🏆 추천: ${top.text}`
+      : '날짜 조율 결과를 확인해보세요!'
+
+    window.Kakao.Share.sendDefault({
+      objectType: 'feed',
+      content: {
+        title: `[${room?.name}] 날짜 조율 완료!`,
+        description,
+        imageUrl: 'https://to-meet.vercel.app/icons.svg',
+        link: {
+          mobileWebUrl: window.location.href,
+          webUrl: window.location.href,
+        },
+      },
+      buttons: [
+        {
+          title: '결과 보러가기',
+          link: {
+            mobileWebUrl: window.location.href,
+            webUrl: window.location.href,
+          },
+        },
+      ],
+    })
+  }
+
+  if (loading) return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif', color: '#888' }}>
+      불러오는 중...
+    </div>
+  )
+
+  const totalDays = new Date(calYear, calMonth + 1, 0).getDate()
+  const firstDay = new Date(calYear, calMonth, 1).getDay()
+  const DOW = ['일', '월', '화', '수', '목', '금', '토']
+  const MEDAL_BG = ['#FEF9C3', '#F1F0F0', '#FAEEDA']
+  const MEDAL_COLOR = ['#CA8A04', '#5F5E5A', '#854F0B']
+  const MEDAL_EMOJI = ['🥇', '🥈', '🥉']
 
   return (
     <div style={{ minHeight: '100vh', background: '#f8f7ff', fontFamily: 'sans-serif', padding: '1.5rem 1rem' }}>
@@ -298,27 +345,38 @@ function Result() {
             {window.location.href}
           </div>
 
-          {/* 버튼 2개 */}
+          {/* 카카오톡 공유 버튼 */}
+          <button onClick={handleKakaoShare} style={{
+            width: '100%', padding: '12px', borderRadius: '10px',
+            border: 'none', background: '#FEE500',
+            color: '#191919', fontSize: '14px', fontWeight: '600',
+            cursor: 'pointer', marginBottom: '8px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
+          }}>
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M9 1C4.582 1 1 3.896 1 7.5c0 2.332 1.438 4.376 3.6 5.572L3.75 17l4.418-2.95C8.44 14.08 8.717 14.1 9 14.1c4.418 0 8-2.896 8-6.6S13.418 1 9 1z" fill="#191919"/>
+            </svg>
+            카카오톡으로 공유하기
+          </button>
+
+          {/* 링크/텍스트 복사 버튼 */}
           <div style={{ display: 'flex', gap: '8px' }}>
             <button onClick={handleCopyLink} style={{
               flex: 1, padding: '11px', borderRadius: '10px',
-              border: '0.5px solid #c5c2f0', background: copied ? '#E1F5EE' : '#f0efff',
-              color: copied ? '#085041' : '#534AB7',
+              border: '0.5px solid #c5c2f0',
+              background: copied === 'link' ? '#E1F5EE' : '#f0efff',
+              color: copied === 'link' ? '#085041' : '#534AB7',
               fontSize: '13px', fontWeight: '500', cursor: 'pointer', transition: 'all 0.2s'
             }}>
-              {copied ? '✓ 복사됨!' : '🔗 링크 복사'}
+              {copied === 'link' ? '✓ 복사됨!' : '🔗 링크 복사'}
             </button>
             <button onClick={handleCopyResult} style={{
               flex: 1, padding: '11px', borderRadius: '10px',
               border: 'none', background: '#534AB7',
               color: '#fff', fontSize: '13px', fontWeight: '500', cursor: 'pointer'
             }}>
-              📋 결과 텍스트 복사
+              {copied === 'text' ? '✓ 복사됨!' : '📋 결과 텍스트 복사'}
             </button>
-          </div>
-
-          <div style={{ fontSize: '11px', color: '#aaa', marginTop: '8px', textAlign: 'center' }}>
-            카카오톡 공유는 배포 후 추가될 예정이에요
           </div>
         </div>
 
