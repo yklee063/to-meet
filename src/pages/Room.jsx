@@ -104,12 +104,34 @@ function Room() {
   const handleJoin = async () => {
     if (!nickname.trim()) { setError('이름을 입력해주세요'); return }
     setJoining(true); setError('')
+
+    // ✅ 같은 방에 같은 이름 있는지 먼저 확인
+    const { data: existing } = await supabase
+      .from('participants')
+      .select('*')
+      .eq('room_id', room.id)
+      .eq('nickname', nickname.trim())
+      .single()
+
+    if (existing) {
+      // 기존 참여자 → 바로 입장
+      localStorage.setItem(`room_${code}`, JSON.stringify({ id: existing.id, nickname: existing.nickname }))
+      setParticipant(existing)
+      setIsDone(existing.is_done || false)
+      fetchMyVotes(existing.id)
+      fetchOthersVotes(room.id, existing.id)
+      setJoining(false)
+      return
+    }
+
+    // 신규 참여자 → 새로 생성
     const { data, error } = await supabase
       .from('participants')
       .insert({ room_id: room.id, nickname: nickname.trim() })
       .select().single()
+
     if (error) {
-      setError(error.code === '23505' ? '이미 사용 중인 이름이에요. 다른 이름을 입력해주세요' : '입장 실패: ' + error.message)
+      setError('입장 실패: ' + error.message)
       setJoining(false); return
     }
     localStorage.setItem(`room_${code}`, JSON.stringify({ id: data.id, nickname: data.nickname }))
@@ -156,7 +178,6 @@ function Room() {
     fetchParticipants(room.id)
   }
 
-  // 이전 달로 못 가게 막기
   const canGoPrev = calYear > todayDate.getFullYear() ||
     (calYear === todayDate.getFullYear() && calMonth > todayDate.getMonth())
 
@@ -198,7 +219,7 @@ function Room() {
         />
         {error && <div style={{ color: '#e24b4a', fontSize: '13px', marginBottom: '1rem' }}>{error}</div>}
         <button onClick={handleJoin} disabled={joining} style={{ width: '100%', background: joining ? '#aaa' : '#534AB7', color: '#fff', border: 'none', borderRadius: '10px', padding: '13px', fontSize: '15px', fontWeight: '500', cursor: joining ? 'not-allowed' : 'pointer' }}>
-          {joining ? '입장 중...' : '입장하기 →'}
+          {joining ? '확인 중...' : '입장하기 →'}
         </button>
         {participants.length > 0 && (
           <div style={{ marginTop: '1.5rem' }}>
@@ -225,7 +246,6 @@ function Room() {
     <div style={{ minHeight: '100vh', background: '#f8f7ff', fontFamily: 'sans-serif', padding: '1.5rem 1rem' }}>
       <div style={{ maxWidth: '480px', margin: '0 auto' }}>
 
-        {/* 헤더 */}
         <div style={{ marginBottom: '1.25rem' }}>
           <div style={{ fontSize: '12px', color: '#aaa', marginBottom: '4px' }}>{room.name}</div>
           <h2 style={{ fontSize: '1.2rem', fontWeight: '600', color: '#534AB7' }}>
@@ -236,7 +256,6 @@ function Room() {
           </div>
         </div>
 
-        {/* 계주 진행바 */}
         {room.max_members && (
           <div style={{ background: '#fff', borderRadius: '12px', padding: '1rem', border: '0.5px solid #e0e0e0', marginBottom: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
@@ -270,7 +289,6 @@ function Room() {
           </div>
         )}
 
-        {/* 참여자 목록 */}
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '1rem' }}>
           {participants.map(p => (
             <span key={p.id} style={{
@@ -283,7 +301,6 @@ function Room() {
           ))}
         </div>
 
-        {/* 달력 */}
         <div style={{ background: '#fff', borderRadius: '16px', padding: '1.25rem', border: '0.5px solid #e0e0e0', marginBottom: '1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
             <button onClick={handlePrevMonth} style={{
@@ -314,15 +331,7 @@ function Room() {
               )
               const isClickable = !isPast && (!isDone || isEditing)
 
-              // 지난 날짜는 빈 칸으로 표시
-              if (isPast) {
-                return (
-                  <div key={day} style={{
-                    aspectRatio: '1', borderRadius: '8px',
-                    background: 'transparent',
-                  }} />
-                )
-              }
+              if (isPast) return <div key={day} style={{ aspectRatio: '1', borderRadius: '8px', background: 'transparent' }} />
 
               return (
                 <div key={day} onClick={() => isClickable && handleTempVote(dateKey)} style={{
@@ -338,9 +347,7 @@ function Room() {
                   <span style={{ fontSize: '12px', color: dow === 0 ? '#ef4444' : dow === 6 ? '#3b82f6' : '#333', fontWeight: myTemp === 'no' ? '600' : '400' }}>
                     {day}
                   </span>
-                  {myTemp === 'no' && (
-                    <span style={{ fontSize: '10px', fontWeight: '700', color: '#dc2626' }}>✕</span>
-                  )}
+                  {myTemp === 'no' && <span style={{ fontSize: '10px', fontWeight: '700', color: '#dc2626' }}>✕</span>}
                   {othersNo.length > 0 && !myTemp && (
                     <span style={{ fontSize: '8px', color: '#e24b4a', lineHeight: 1.2, textAlign: 'center', maxWidth: '90%', overflow: 'hidden' }}>
                       {othersNo.slice(0, 2).map(p => p.nickname).join(',')}
@@ -364,7 +371,6 @@ function Room() {
           </div>
         </div>
 
-        {/* 완료/수정 버튼 */}
         {!isDone ? (
           <button onClick={handleSubmit} disabled={submitting} style={{
             width: '100%', background: submitting ? '#aaa' : '#22c55e',
@@ -393,7 +399,6 @@ function Room() {
           결과 보기 →
         </button>
 
-        {/* 전원 완료 팝업 */}
         {allDone && (
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
             <div style={{ background: '#fff', borderRadius: '20px', padding: '2rem', maxWidth: '320px', width: '90%', textAlign: 'center' }}>
