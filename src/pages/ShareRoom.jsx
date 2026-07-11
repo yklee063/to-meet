@@ -16,7 +16,7 @@ function ShareRoom() {
 
   const handleKakaoShare = () => {
     if (!window.Kakao || !window.Kakao.isInitialized()) {
-      alert('카카오 SDK가 로드되지 않았어요. 잠시 후 다시 시도해주세요.')
+      alert('카카오 SDK가 로드되지 않았어요.')
       return
     }
     window.Kakao.Share.sendDefault({

@@ -102,16 +102,42 @@ function Result() {
     return candidates.sort((a, b) => a.noCount - b.noCount).slice(0, 3)
   })()
 
-  // ✅ sendScrap으로 수정 — 링크 바로 열림
   const handleKakaoShare = () => {
-    if (!window.Kakao || !window.Kakao.isInitialized()) {
-      alert('카카오 SDK가 로드되지 않았어요. 잠시 후 다시 시도해주세요.')
-      return
+      if (!window.Kakao || !window.Kakao.isInitialized()) {
+        alert('카카오 SDK가 로드되지 않았어요. 잠시 후 다시 시도해주세요.')
+        return
+      }
+      const resultUrl = window.location.href
+      const top = rankedDates[0]
+      const description = top ? (() => {
+        const [y, mo, da] = top.dateKey.split('-')
+        const date = new Date(Number(y), Number(mo) - 1, Number(da))
+        const dow = ['일','월','화','수','목','금','토'][date.getDay()]
+        return `🏆 추천: ${Number(mo)}월 ${Number(da)}일 (${dow})`
+      })() : '날짜 조율 결과를 확인해보세요!'
+
+      window.Kakao.Share.sendDefault({
+        objectType: 'feed',
+        content: {
+          title: `[${room?.name}] 날짜 조율 완료!`,
+          description,
+          imageUrl: 'https://to-meet.vercel.app/og-image.png',
+          link: {
+            mobileWebUrl: resultUrl,
+            webUrl: resultUrl,
+          },
+        },
+        buttons: [
+          {
+            title: '결과 보러가기',
+            link: {
+              mobileWebUrl: resultUrl,
+              webUrl: resultUrl,
+            },
+          },
+        ],
+      })
     }
-    window.Kakao.Share.sendScrap({
-      requestUrl: window.location.href,
-    })
-  }
 
   if (loading) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif', color: '#888' }}>
