@@ -102,44 +102,14 @@ function Result() {
     return candidates.sort((a, b) => a.noCount - b.noCount).slice(0, 3)
   })()
 
-  const getTopDateText = () => {
-    const top = rankedDates[0]
-    if (!top) return null
-    const [y, mo, da] = top.dateKey.split('-')
-    const date = new Date(Number(y), Number(mo) - 1, Number(da))
-    const dow = ['일','월','화','수','목','금','토'][date.getDay()]
-    const status = getStatus(top.dateKey)
-    const statusText = status === 'possible' ? '전원 가능 ✓' : status === 'maybe' ? '애매 (1명 불가)' : '일부 불가'
-    return { text: `${Number(mo)}월 ${Number(da)}일 (${dow}) — ${statusText}` }
-  }
-
+  // ✅ sendScrap으로 수정 — 링크 바로 열림
   const handleKakaoShare = () => {
     if (!window.Kakao || !window.Kakao.isInitialized()) {
       alert('카카오 SDK가 로드되지 않았어요. 잠시 후 다시 시도해주세요.')
       return
     }
-    const top = getTopDateText()
-    const description = top ? `🏆 추천: ${top.text}` : '날짜 조율 결과를 확인해보세요!'
-    window.Kakao.Share.sendDefault({
-      objectType: 'feed',
-      content: {
-        title: `[${room?.name}] 날짜 조율 완료!`,
-        description,
-        imageUrl: 'https://to-meet.vercel.app/icons.png',
-        link: {
-          mobileWebUrl: window.location.href,
-          webUrl: window.location.href,
-        },
-      },
-      buttons: [
-        {
-          title: '결과 보러가기',
-          link: {
-            mobileWebUrl: window.location.href,
-            webUrl: window.location.href,
-          },
-        },
-      ],
+    window.Kakao.Share.sendScrap({
+      requestUrl: window.location.href,
     })
   }
 
@@ -160,7 +130,6 @@ function Result() {
     <div style={{ minHeight: '100vh', background: '#f8f7ff', fontFamily: 'sans-serif', padding: '1.5rem 1rem' }}>
       <div style={{ maxWidth: '480px', margin: '0 auto' }}>
 
-        {/* 헤더 */}
         <div style={{ marginBottom: '1.5rem' }}>
           <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', color: '#888', fontSize: '13px', cursor: 'pointer', padding: 0, marginBottom: '8px' }}>
             ← 돌아가기
@@ -171,7 +140,6 @@ function Result() {
           </div>
         </div>
 
-        {/* 참여자 칩 */}
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
           {participants.map(p => (
             <span key={p.id} style={{
@@ -184,14 +152,12 @@ function Result() {
           ))}
         </div>
 
-        {/* 대기 중 안내 */}
         {doneParts.length < participants.length && (
           <div style={{ background: '#fffbeb', border: '0.5px solid #fcd34d', borderRadius: '12px', padding: '12px 16px', marginBottom: '1rem', fontSize: '13px', color: '#92400e' }}>
             ⏳ 아직 {participants.length - doneParts.length}명이 선택 중이에요. 완료하면 결과가 업데이트돼요.
           </div>
         )}
 
-        {/* TOP3 */}
         {doneParts.length === 0 ? (
           <div style={{ background: '#fff', borderRadius: '16px', padding: '2rem', border: '0.5px solid #e0e0e0', marginBottom: '1rem', textAlign: 'center', color: '#aaa', fontSize: '14px' }}>
             아직 완료한 참여자가 없어요
@@ -226,7 +192,7 @@ function Result() {
                       <span style={{
                         fontSize: '11px', fontWeight: '500', padding: '2px 8px', borderRadius: '999px',
                         background: status === 'possible' ? '#dcfce7' : status === 'maybe' ? '#fef9c3' : '#fee2e2',
-                        color: status === 'possible' ? '#166534' : status === 'maybe' ? '#854d0e' : '#991b1b'
+                        color: status === 'possible' ? '#166634' : status === 'maybe' ? '#854d0e' : '#991b1b'
                       }}>
                         {status === 'possible' ? '가능 ✓' : status === 'maybe' ? '애매' : '불가'}
                       </span>
@@ -251,7 +217,6 @@ function Result() {
           </div>
         )}
 
-        {/* 히트맵 달력 */}
         <div style={{ background: '#fff', borderRadius: '16px', padding: '1.25rem', border: '0.5px solid #e0e0e0', marginBottom: '1rem' }}>
           <div style={{ fontSize: '13px', fontWeight: '600', color: '#333', marginBottom: '1rem' }}>📅 날짜별 현황</div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
@@ -311,22 +276,11 @@ function Result() {
           </div>
         </div>
 
-        {/* 결과 공유 — 카카오만 */}
         <div style={{ background: '#fff', borderRadius: '16px', padding: '1.25rem', border: '0.5px solid #e0e0e0', marginBottom: '2rem' }}>
           <div style={{ fontSize: '13px', fontWeight: '600', color: '#333', marginBottom: '1rem' }}>
             📤 결과 공유하기
           </div>
-          {/* 링크 박스 */}
-          <div style={{
-            background: '#f0efff',
-            border: '0.5px solid #c5c2f0',
-            borderRadius: '10px',
-            padding: '10px 14px',
-            fontSize: '12px',
-            color: '#534AB7',
-            wordBreak: 'break-all',
-            marginBottom: '10px'
-          }}>
+          <div style={{ background: '#f0efff', border: '0.5px solid #c5c2f0', borderRadius: '10px', padding: '10px 14px', fontSize: '12px', color: '#534AB7', wordBreak: 'break-all', marginBottom: '10px' }}>
             {window.location.href}
           </div>
           <button onClick={handleKakaoShare} style={{
