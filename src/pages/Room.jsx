@@ -38,21 +38,25 @@ function Room() {
       setRoom(data)
       fetchParticipants(data.id)
 
-      const saved = localStorage.getItem(`room_${code}`)
-      if (saved) {
+    const saved = localStorage.getItem(`room_${code}`)
+    if (saved) {
+      try {
         const parsed = JSON.parse(saved)
         const { data: existingPart } = await supabase
           .from('participants').select('*').eq('id', parsed.id).single()
         if (existingPart) {
           setParticipant(existingPart)
           setIsDone(existingPart.is_done || false)
-          fetchMyVotes(existingPart.id)
-          fetchOthersVotes(data.id, existingPart.id)
+          await fetchMyVotes(existingPart.id)
+          await fetchOthersVotes(data.id, existingPart.id)
         } else {
           localStorage.removeItem(`room_${code}`)
         }
+      } catch (e) {
+        localStorage.removeItem(`room_${code}`)
       }
-      setLoading(false)
+    }
+    setLoading(false)
     }
     fetchRoom()
   }, [code])
