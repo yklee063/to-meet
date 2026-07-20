@@ -135,16 +135,18 @@ function Result() {
     }
     const resultUrl = window.location.href
     const top = rankedDates[0]
-    const description = top ? (() => {
-      const [y, mo, da] = top.dateKey.split('-')
+    const DOW_KR = ['일','월','화','수','목','금','토']
+    const description = rankedDates.length > 0 ? rankedDates.slice(0, 3).map((d, i) => {
+      const [y, mo, da] = d.dateKey.split('-')
       const date = new Date(Number(y), Number(mo) - 1, Number(da))
-      const dow = ['일','월','화','수','목','금','토'][date.getDay()]
-      return `🏆 추천: ${Number(mo)}월 ${Number(da)}일 (${dow})`
-    })() : '날짜 조율 결과를 확인해보세요!'
+      const dow = DOW_KR[date.getDay()]
+      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'
+      return `${medal} ${Number(mo)}월 ${Number(da)}일 (${dow})`
+    }).join('\n') : '날짜 조율 결과를 확인해보세요!'
     window.Kakao.Share.sendDefault({
       objectType: 'feed',
       content: {
-        title: `[${room?.name}] 날짜 조율 완료!`,
+        title: `${room?.name} 날짜 조율 완료!`,
         description,
         imageUrl: 'https://to-meet.vercel.app/og-image.png',
         link: { mobileWebUrl: resultUrl, webUrl: resultUrl },
