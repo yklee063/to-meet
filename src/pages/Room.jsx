@@ -244,7 +244,7 @@ function Room() {
   const allDone = room.max_members && doneParts.length >= room.max_members
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8f7ff', fontFamily: 'sans-serif', padding: '1rem', boxSizing: 'border-box', width: '100%', overflowX: 'hidden' }}>
+    <div style={{ minHeight: '100vh', background: '#f8f7ff', fontFamily: 'sans-serif', padding: '0.75rem', boxSizing: 'border-box', width: '100%', overflowX: 'hidden' }}>
       <div style={{ maxWidth: '480px', margin: '0 auto', width: '100%' }}>
 
         {/* 헤더 */}
@@ -260,7 +260,7 @@ function Room() {
 
         {/* 계주 진행바 */}
         {room.max_members && (
-          <div style={{ background: '#fff', borderRadius: '12px', padding: '0.75rem', border: '0.5px solid #e0e0e0', marginBottom: '0.75rem', boxSizing: 'border-box' }}>
+          <div style={{ background: '#fff', borderRadius: '12px', padding: '0.5rem', border: '0.5px solid #e0e0e0', marginBottom: '0.75rem', boxSizing: 'border-box' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
               <span style={{ fontSize: '11px', fontWeight: '500', color: '#534AB7' }}>완료 현황</span>
               <span style={{ fontSize: '11px', color: '#888' }}>{doneParts.length} / {room.max_members}명</span>
