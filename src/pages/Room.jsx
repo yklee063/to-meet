@@ -2,6 +2,32 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
+const HOLIDAYS = {
+  '2026-01-01': '신정',
+  '2026-02-14': '설연휴',
+  '2026-02-16': '설날',
+  '2026-02-17': '설연휴',
+  '2026-02-18': '설연휴',
+  '2026-03-01': '삼일절',
+  '2026-03-02': '대체공휴일',
+  '2026-05-01': '노동절',
+  '2026-05-05': '어린이날',
+  '2026-05-24': '부처님오신날',
+  '2026-05-25': '대체공휴일',
+  '2026-06-03': '지방선거',
+  '2026-06-06': '현충일',
+  '2026-07-17': '제헌절',
+  '2026-08-15': '광복절',
+  '2026-08-17': '대체공휴일',
+  '2026-09-24': '추석연휴',
+  '2026-09-25': '추석',
+  '2026-09-26': '추석연휴',
+  '2026-10-03': '개천절',
+  '2026-10-05': '대체공휴일',
+  '2026-10-09': '한글날',
+  '2026-12-25': '성탄절',
+}
+
 function Room() {
   const { code } = useParams()
   const navigate = useNavigate()
@@ -131,10 +157,7 @@ function Room() {
       .insert({ room_id: room.id, nickname: nickname.trim() })
       .select().single()
 
-    if (error) {
-      setError('입장 실패: ' + error.message)
-      setJoining(false); return
-    }
+    if (error) { setError('입장 실패: ' + error.message); setJoining(false); return }
     localStorage.setItem(`room_${code}`, JSON.stringify({ id: data.id, nickname: data.nickname }))
     setParticipant(data)
     setIsDone(data.is_done || false)
@@ -157,10 +180,7 @@ function Room() {
     setSubmitting(true)
     await supabase.from('date_votes').delete().eq('participant_id', participant.id)
     const insertData = Object.entries(tempVotes).map(([date, status]) => ({
-      participant_id: participant.id,
-      room_id: room.id,
-      voted_date: date,
-      status
+      participant_id: participant.id, room_id: room.id, voted_date: date, status
     }))
     if (insertData.length > 0) await supabase.from('date_votes').insert(insertData)
     await supabase.from('participants').update({ is_done: true }).eq('id', participant.id)
@@ -184,13 +204,11 @@ function Room() {
 
   const handlePrevMonth = () => {
     if (!canGoPrev) return
-    if (calMonth === 0) { setCalMonth(11); setCalYear(y => y - 1) }
-    else setCalMonth(m => m - 1)
+    if (calMonth === 0) { setCalMonth(11); setCalYear(y => y - 1) } else setCalMonth(m => m - 1)
   }
 
   const handleNextMonth = () => {
-    if (calMonth === 11) { setCalMonth(0); setCalYear(y => y + 1) }
-    else setCalMonth(m => m + 1)
+    if (calMonth === 11) { setCalMonth(0); setCalYear(y => y + 1) } else setCalMonth(m => m + 1)
   }
 
   if (loading) return (
@@ -247,20 +265,16 @@ function Room() {
     <div style={{ minHeight: '100vh', background: '#f8f7ff', fontFamily: 'sans-serif', padding: '0.75rem', boxSizing: 'border-box', width: '100%', overflowX: 'hidden' }}>
       <div style={{ maxWidth: '480px', margin: '0 auto', width: '100%' }}>
 
-        {/* 헤더 */}
         <div style={{ marginBottom: '1rem' }}>
           <div style={{ fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>{room.name}</div>
           <h2 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#534AB7', margin: 0 }}>
             {isDone ? `${participant.nickname}님, 선택 완료!` : `${participant.nickname}님, 안 되는 날짜를 선택해주세요`}
           </h2>
-          <div style={{ fontSize: '11px', color: '#aaa', marginTop: '4px' }}>
-            날짜를 클릭하면 X 표시돼요 · 다시 클릭하면 해제
-          </div>
+          <div style={{ fontSize: '11px', color: '#aaa', marginTop: '4px' }}>날짜를 클릭하면 X 표시돼요 · 다시 클릭하면 해제</div>
         </div>
 
-        {/* 계주 진행바 */}
         {room.max_members && (
-          <div style={{ background: '#fff', borderRadius: '12px', padding: '0.5rem', border: '0.5px solid #e0e0e0', marginBottom: '0.75rem', boxSizing: 'border-box' }}>
+          <div style={{ background: '#fff', borderRadius: '12px', padding: '0.75rem', border: '0.5px solid #e0e0e0', marginBottom: '0.75rem', boxSizing: 'border-box' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
               <span style={{ fontSize: '11px', fontWeight: '500', color: '#534AB7' }}>완료 현황</span>
               <span style={{ fontSize: '11px', color: '#888' }}>{doneParts.length} / {room.max_members}명</span>
@@ -271,13 +285,7 @@ function Room() {
                 const isLast = i === doneParts.length - 1 && done
                 return (
                   <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
-                    <div style={{
-                      width: '24px', height: '24px', borderRadius: '50%',
-                      background: done ? '#534AB7' : '#f0f0f0',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '12px', transition: 'all 0.3s',
-                      border: isLast ? '2px solid #22c55e' : 'none'
-                    }}>
+                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: done ? '#534AB7' : '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', transition: 'all 0.3s', border: isLast ? '2px solid #22c55e' : 'none' }}>
                       {done ? '🏃' : '👤'}
                     </div>
                     <div style={{ height: '3px', width: '100%', background: done ? '#534AB7' : '#f0f0f0', borderRadius: '2px' }} />
@@ -292,7 +300,6 @@ function Room() {
           </div>
         )}
 
-        {/* 참여자 목록 */}
         <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
           {participants.map(p => (
             <span key={p.id} style={{
@@ -306,27 +313,19 @@ function Room() {
         </div>
 
         {/* 달력 */}
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '0.75rem', border: '0.5px solid #e0e0e0', marginBottom: '0.75rem', boxSizing: 'border-box', width: '100%', overflow: 'hidden' }}>
-
-          {/* 달력 네비 */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-            <button onClick={handlePrevMonth} style={{
-              background: 'none', border: '0.5px solid #e0e0e0', borderRadius: '6px',
-              width: '28px', height: '28px', cursor: canGoPrev ? 'pointer' : 'not-allowed',
-              fontSize: '14px', opacity: canGoPrev ? 1 : 0.3, flexShrink: 0
-            }}>‹</button>
+        <div style={{ background: '#fff', borderRadius: '12px', padding: '0.5rem', border: '0.5px solid #e0e0e0', marginBottom: '0.75rem', boxSizing: 'border-box', width: '100%', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+            <button onClick={handlePrevMonth} style={{ background: 'none', border: '0.5px solid #e0e0e0', borderRadius: '6px', width: '28px', height: '28px', cursor: canGoPrev ? 'pointer' : 'not-allowed', fontSize: '14px', opacity: canGoPrev ? 1 : 0.3, flexShrink: 0 }}>‹</button>
             <span style={{ fontWeight: '500', color: '#333', fontSize: '14px' }}>{calYear}년 {calMonth + 1}월</span>
             <button onClick={handleNextMonth} style={{ background: 'none', border: '0.5px solid #e0e0e0', borderRadius: '6px', width: '28px', height: '28px', cursor: 'pointer', fontSize: '14px', flexShrink: 0 }}>›</button>
           </div>
 
-          {/* 요일 헤더 */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px', marginBottom: '2px' }}>
             {['일','월','화','수','목','금','토'].map((d, i) => (
               <div key={d} style={{ textAlign: 'center', fontSize: '10px', fontWeight: '500', color: i === 0 ? '#ef4444' : i === 6 ? '#3b82f6' : '#aaa', padding: '3px 0' }}>{d}</div>
             ))}
           </div>
 
-          {/* 날짜 그리드 */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px' }}>
             {Array.from({ length: firstDay }).map((_, i) => <div key={'e' + i} style={{ aspectRatio: '1' }} />)}
             {Array.from({ length: totalDays }, (_, i) => i + 1).map(day => {
@@ -335,12 +334,20 @@ function Room() {
               const isPast = thisDate < todayDate
               const dow = thisDate.getDay()
               const myTemp = tempVotes[dateKey]
+              const holiday = HOLIDAYS[dateKey]
+              const isHoliday = !!holiday
               const othersNo = othersVotes.filter(p =>
                 p.votes.some(v => v.voted_date === dateKey && v.status === 'no')
               )
               const isClickable = !isPast && (!isDone || isEditing)
 
               if (isPast) return <div key={day} style={{ aspectRatio: '1' }} />
+
+              const textColor = myTemp === 'no'
+                ? '#dc2626'
+                : dow === 0 || isHoliday ? '#ef4444'
+                : dow === 6 ? '#3b82f6'
+                : '#333'
 
               return (
                 <div key={day} onClick={() => isClickable && handleTempVote(dateKey)} style={{
@@ -351,12 +358,17 @@ function Room() {
                   background: myTemp === 'no' ? '#fee2e2' : othersNo.length > 0 ? '#fff5f5' : '#f8f7ff',
                   border: myTemp === 'no' ? '0.5px solid #fca5a5' : othersNo.length > 0 ? '0.5px solid #fecaca' : '0.5px solid transparent',
                   cursor: isClickable ? 'pointer' : 'default',
-                  transition: 'all 0.1s',
-                  minWidth: 0
+                  transition: 'all 0.1s', minWidth: 0, overflow: 'hidden'
                 }}>
-                  <span style={{ fontSize: '11px', color: dow === 0 ? '#ef4444' : dow === 6 ? '#3b82f6' : '#333', fontWeight: myTemp === 'no' ? '600' : '400', lineHeight: 1 }}>
+                  <span style={{ fontSize: '11px', color: textColor, fontWeight: myTemp === 'no' || isHoliday ? '600' : '400', lineHeight: 1 }}>
                     {day}
                   </span>
+                  {/* 공휴일 이름 */}
+                  {holiday && !myTemp && othersNo.length === 0 && (
+                    <span style={{ fontSize: '6px', color: '#ef4444', lineHeight: 1.1, textAlign: 'center', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '0 1px' }}>
+                      {holiday.length > 3 ? holiday.slice(0, 3) : holiday}
+                    </span>
+                  )}
                   {myTemp === 'no' && <span style={{ fontSize: '9px', fontWeight: '700', color: '#dc2626', lineHeight: 1 }}>✕</span>}
                   {othersNo.length > 0 && !myTemp && (
                     <span style={{ fontSize: '7px', color: '#e24b4a', lineHeight: 1.1, textAlign: 'center', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '0 1px' }}>
@@ -368,7 +380,6 @@ function Room() {
             })}
           </div>
 
-          {/* 범례 */}
           <div style={{ display: 'flex', gap: '10px', marginTop: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
               <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#fee2e2', border: '0.5px solid #fca5a5', flexShrink: 0 }} />
@@ -381,55 +392,32 @@ function Room() {
           </div>
         </div>
 
-        {/* 완료/수정 버튼 */}
         {!isDone ? (
-          <button onClick={handleSubmit} disabled={submitting} style={{
-            width: '100%', background: submitting ? '#aaa' : '#22c55e',
-            color: '#fff', border: 'none', borderRadius: '10px',
-            padding: '12px', fontSize: '14px', fontWeight: '500',
-            cursor: submitting ? 'not-allowed' : 'pointer', marginBottom: '8px',
-            boxSizing: 'border-box'
-          }}>
+          <button onClick={handleSubmit} disabled={submitting} style={{ width: '100%', background: submitting ? '#aaa' : '#22c55e', color: '#fff', border: 'none', borderRadius: '10px', padding: '12px', fontSize: '14px', fontWeight: '500', cursor: submitting ? 'not-allowed' : 'pointer', marginBottom: '8px', boxSizing: 'border-box' }}>
             {submitting ? '저장 중...' : '선택 완료하기 ✓'}
           </button>
         ) : (
-          <button onClick={handleEdit} style={{
-            width: '100%', background: '#fff', color: '#534AB7',
-            border: '0.5px solid #534AB7', borderRadius: '10px',
-            padding: '12px', fontSize: '14px', fontWeight: '500',
-            cursor: 'pointer', marginBottom: '8px', boxSizing: 'border-box'
-          }}>
+          <button onClick={handleEdit} style={{ width: '100%', background: '#fff', color: '#534AB7', border: '0.5px solid #534AB7', borderRadius: '10px', padding: '12px', fontSize: '14px', fontWeight: '500', cursor: 'pointer', marginBottom: '8px', boxSizing: 'border-box' }}>
             수정하기 ✎
           </button>
         )}
 
-        <button onClick={() => navigate(`/room/${code}/result`)} style={{
-          width: '100%', background: '#534AB7', color: '#fff',
-          border: 'none', borderRadius: '10px', padding: '12px',
-          fontSize: '14px', fontWeight: '500', cursor: 'pointer',
-          boxSizing: 'border-box', marginBottom: '1rem'
-        }}>
+        <button onClick={() => navigate(`/room/${code}/result`)} style={{ width: '100%', background: '#534AB7', color: '#fff', border: 'none', borderRadius: '10px', padding: '12px', fontSize: '14px', fontWeight: '500', cursor: 'pointer', boxSizing: 'border-box', marginBottom: '1rem' }}>
           결과 보기 →
         </button>
 
-        {/* 전원 완료 팝업 */}
         {allDone && (
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '1rem', boxSizing: 'border-box' }}>
             <div style={{ background: '#fff', borderRadius: '20px', padding: '2rem', maxWidth: '320px', width: '100%', textAlign: 'center', boxSizing: 'border-box' }}>
               <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎉</div>
               <h3 style={{ fontSize: '1.2rem', fontWeight: '600', color: '#534AB7', marginBottom: '0.5rem' }}>모두 완료했어요!</h3>
               <p style={{ fontSize: '13px', color: '#888', marginBottom: '1.5rem' }}>{room.max_members}명 모두 날짜를 선택했어요</p>
-              <button onClick={() => navigate(`/room/${code}/result`)} style={{
-                width: '100%', background: '#534AB7', color: '#fff',
-                border: 'none', borderRadius: '10px', padding: '12px',
-                fontSize: '14px', fontWeight: '500', cursor: 'pointer'
-              }}>
+              <button onClick={() => navigate(`/room/${code}/result`)} style={{ width: '100%', background: '#534AB7', color: '#fff', border: 'none', borderRadius: '10px', padding: '12px', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}>
                 결과 보러 가기 →
               </button>
             </div>
           </div>
         )}
-
       </div>
     </div>
   )
