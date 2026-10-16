@@ -9,7 +9,7 @@ function DomainMoved() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8f7ff', fontFamily: 'sans-serif', padding: '1rem', boxSizing: 'border-box', wordBreak: 'keep-all' }}>
       <div style={{ background: '#fff', borderRadius: '16px', padding: '2rem 1.5rem', width: '100%', maxWidth: '360px', border: '0.5px solid #e0e0e0', textAlign: 'center', boxSizing: 'border-box' }}>
-        <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>📦</div>
+        <div style={{ fontSize: '2.5rem', lineHeight: 1, marginBottom: '1rem' }}>📦</div>
         <h1 style={{ fontSize: '1.15rem', fontWeight: '600', color: '#534AB7', margin: '0 0 0.5rem', letterSpacing: 0 }}>
           투밋 주소가 바뀌었어요
         </h1>
