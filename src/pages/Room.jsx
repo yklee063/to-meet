@@ -49,6 +49,7 @@ function Room() {
   const [isDone, setIsDone] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [voteMode, setVoteMode] = useState('no')
 
   const makeDateKey = (year, month, day) => {
     const m = String(month + 1).padStart(2, '0')
@@ -170,8 +171,8 @@ function Room() {
     if (isDone && !isEditing) return
     setTempVotes(prev => {
       const n = { ...prev }
-      if (n[dateKey] === 'no') delete n[dateKey]
-      else n[dateKey] = 'no'
+      if (n[dateKey] === voteMode) delete n[dateKey]
+      else n[dateKey] = voteMode
       return n
     })
   }
@@ -268,9 +269,9 @@ function Room() {
         <div style={{ marginBottom: '1rem' }}>
           <div style={{ fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>{room.name}</div>
           <h2 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#534AB7', margin: 0 }}>
-            {isDone ? `${participant.nickname}님, 선택 완료!` : `${participant.nickname}님, 안 되는 날짜를 선택해주세요`}
+            {isDone ? `${participant.nickname}님, 선택 완료!` : `${participant.nickname}님, 되는 날과 안 되는 날을 선택해주세요`}
           </h2>
-          <div style={{ fontSize: '11px', color: '#aaa', marginTop: '4px' }}>날짜를 클릭하면 X 표시돼요 · 다시 클릭하면 해제</div>
+          <div style={{ fontSize: '11px', color: '#aaa', marginTop: '4px' }}>아래에서 모드를 고르고 날짜를 클릭하세요 · 다시 클릭하면 해제</div>
         </div>
 
         {room.max_members && (
@@ -314,6 +315,23 @@ function Room() {
 
         {/* 달력 */}
         <div style={{ background: '#fff', borderRadius: '12px', padding: '0.5rem', border: '0.5px solid #e0e0e0', marginBottom: '0.75rem', boxSizing: 'border-box', width: '100%', overflow: 'hidden' }}>
+          {(!isDone || isEditing) && (
+            <div style={{ display: 'flex', gap: '4px', background: '#f4f3fb', borderRadius: '8px', padding: '3px', marginBottom: '0.5rem' }}>
+              {[
+                { mode: 'yes', label: '○ 되는 날', color: '#16a34a', bg: '#dcfce7' },
+                { mode: 'no', label: '✕ 안 되는 날', color: '#dc2626', bg: '#fee2e2' },
+              ].map(({ mode, label, color, bg }) => (
+                <button key={mode} onClick={() => setVoteMode(mode)} style={{
+                  flex: 1, border: 'none', borderRadius: '6px', padding: '7px 0', fontSize: '12px', fontWeight: '600', cursor: 'pointer',
+                  background: voteMode === mode ? bg : 'transparent',
+                  color: voteMode === mode ? color : '#999',
+                  boxShadow: voteMode === mode ? '0 1px 2px rgba(0,0,0,0.08)' : 'none'
+                }}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
             <button onClick={handlePrevMonth} style={{ background: 'none', border: '0.5px solid #e0e0e0', borderRadius: '6px', width: '28px', height: '28px', cursor: canGoPrev ? 'pointer' : 'not-allowed', fontSize: '14px', opacity: canGoPrev ? 1 : 0.3, flexShrink: 0 }}>‹</button>
             <span style={{ fontWeight: '500', color: '#333', fontSize: '14px' }}>{calYear}년 {calMonth + 1}월</span>
@@ -343,8 +361,8 @@ function Room() {
 
               if (isPast) return <div key={day} style={{ aspectRatio: '1' }} />
 
-              const textColor = myTemp === 'no'
-                ? '#dc2626'
+              const textColor = myTemp === 'no' ? '#dc2626'
+                : myTemp === 'yes' ? '#16a34a'
                 : dow === 0 || isHoliday ? '#ef4444'
                 : dow === 6 ? '#3b82f6'
                 : '#333'
@@ -355,12 +373,12 @@ function Room() {
                   display: 'flex', flexDirection: 'column',
                   alignItems: 'center', justifyContent: 'center',
                   borderRadius: '6px',
-                  background: myTemp === 'no' ? '#fee2e2' : othersNo.length > 0 ? '#fff5f5' : '#f8f7ff',
-                  border: myTemp === 'no' ? '0.5px solid #fca5a5' : othersNo.length > 0 ? '0.5px solid #fecaca' : '0.5px solid transparent',
+                  background: myTemp === 'no' ? '#fee2e2' : myTemp === 'yes' ? '#dcfce7' : othersNo.length > 0 ? '#fff5f5' : '#f8f7ff',
+                  border: myTemp === 'no' ? '0.5px solid #fca5a5' : myTemp === 'yes' ? '0.5px solid #86efac' : othersNo.length > 0 ? '0.5px solid #fecaca' : '0.5px solid transparent',
                   cursor: isClickable ? 'pointer' : 'default',
                   transition: 'all 0.1s', minWidth: 0, overflow: 'hidden'
                 }}>
-                  <span style={{ fontSize: '11px', color: textColor, fontWeight: myTemp === 'no' || isHoliday ? '600' : '400', lineHeight: 1 }}>
+                  <span style={{ fontSize: '11px', color: textColor, fontWeight: myTemp || isHoliday ? '600' : '400', lineHeight: 1 }}>
                     {day}
                   </span>
                   {/* 공휴일 이름 */}
@@ -370,6 +388,7 @@ function Room() {
                     </span>
                   )}
                   {myTemp === 'no' && <span style={{ fontSize: '9px', fontWeight: '700', color: '#dc2626', lineHeight: 1 }}>✕</span>}
+                  {myTemp === 'yes' && <span style={{ fontSize: '9px', fontWeight: '700', color: '#16a34a', lineHeight: 1 }}>○</span>}
                   {othersNo.length > 0 && !myTemp && (
                     <span style={{ fontSize: '7px', color: '#e24b4a', lineHeight: 1.1, textAlign: 'center', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '0 1px' }}>
                       {othersNo.length > 1 ? `${othersNo[0].nickname.slice(0,2)}+${othersNo.length-1}` : othersNo[0].nickname.slice(0,3)}
@@ -381,6 +400,10 @@ function Room() {
           </div>
 
           <div style={{ display: 'flex', gap: '10px', marginTop: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#dcfce7', border: '0.5px solid #86efac', flexShrink: 0 }} />
+              <span style={{ fontSize: '10px', color: '#888' }}>내가 선택한 가능</span>
+            </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
               <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: '#fee2e2', border: '0.5px solid #fca5a5', flexShrink: 0 }} />
               <span style={{ fontSize: '10px', color: '#888' }}>내가 선택한 불가</span>

@@ -88,6 +88,11 @@ function Result() {
     return doneParts.filter(p => noIds.includes(p.id)).map(p => p.nickname)
   }
 
+  const getYesNames = (dateKey) => {
+    const yesIds = doneVotes.filter(v => v.voted_date === dateKey && v.status === 'yes').map(v => v.participant_id)
+    return doneParts.filter(p => yesIds.includes(p.id)).map(p => p.nickname)
+  }
+
   const getStatus = (dateKey) => {
     if (doneParts.length === 0) return 'none'
     const noCount = getNoCount(dateKey)
@@ -109,8 +114,10 @@ function Result() {
   const rankedDates = (() => {
     if (doneParts.length === 0) return []
     const noCounts = {}
+    const yesCounts = {}
     doneVotes.forEach(v => {
       if (v.status === 'no') noCounts[v.voted_date] = (noCounts[v.voted_date] || 0) + 1
+      if (v.status === 'yes') yesCounts[v.voted_date] = (yesCounts[v.voted_date] || 0) + 1
     })
     const candidates = []
     for (let m = 0; m < 3; m++) {
@@ -121,11 +128,11 @@ function Result() {
         const dateKey = makeDateKey(year, month, d)
         const thisDate = new Date(year, month, d)
         if (thisDate >= todayDate) {
-          candidates.push({ dateKey, noCount: noCounts[dateKey] || 0 })
+          candidates.push({ dateKey, noCount: noCounts[dateKey] || 0, yesCount: yesCounts[dateKey] || 0 })
         }
       }
     }
-    return candidates.sort((a, b) => a.noCount - b.noCount).slice(0, 3)
+    return candidates.sort((a, b) => a.noCount - b.noCount || b.yesCount - a.yesCount).slice(0, 3)
   })()
 
   const handleKakaoShare = () => {
@@ -206,6 +213,7 @@ function Result() {
               const date = new Date(Number(y), Number(mo) - 1, Number(da))
               const dow = DOW[date.getDay()]
               const noNames = getNoNames(d.dateKey)
+              const yesNames = getYesNames(d.dateKey)
               const possibleCount = doneParts.length - d.noCount
               const status = getStatus(d.dateKey)
               const holiday = HOLIDAYS[d.dateKey]
@@ -231,6 +239,9 @@ function Result() {
                     </div>
                     {noNames.length > 0 && (
                       <div style={{ fontSize: '10px', color: '#e24b4a', marginTop: '3px' }}>✕ {noNames.join(', ')}</div>
+                    )}
+                    {yesNames.length > 0 && (
+                      <div style={{ fontSize: '10px', color: '#16a34a', marginTop: '3px' }}>○ {yesNames.join(', ')}</div>
                     )}
                   </div>
                   <div style={{ fontSize: '20px', flexShrink: 0 }}>{MEDAL_EMOJI[i]}</div>
