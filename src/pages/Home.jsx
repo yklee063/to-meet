@@ -16,8 +16,11 @@ function Home() {
       <h1 style={{ fontSize: '2rem', fontWeight: '600', color: '#534AB7', marginBottom: '0.5rem' }}>
         투밋
       </h1>
-      <p style={{ color: '#888', marginBottom: '2rem', fontSize: '1rem' }}>
+      <p style={{ color: '#888', marginBottom: '0.5rem', fontSize: '1rem' }}>
         모임 날짜를 쉽게 정해요
+      </p>
+      <p style={{ color: '#aaa', marginBottom: '2rem', fontSize: '13px', lineHeight: 1.6, maxWidth: '320px', textAlign: 'center' }}>
+        링크 하나로 되는 날과 안 되는 날을 모아<br />모두 만날 수 있는 날짜를 찾아드려요.<br />회원가입 없이 무료로 쓸 수 있어요.
       </p>
       <button
         onClick={() => navigate('/create')}

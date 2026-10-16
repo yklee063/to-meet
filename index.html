@@ -1,6 +1,21 @@
 <!doctype html>
-<html lang="en">
+<html lang="ko">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>투밋 - 모임 날짜 조율, 약속 잡기 쉽게</title>
+    <meta name="description" content="링크 하나로 친구·동료들의 되는 날과 안 되는 날을 모아 모두 만날 수 있는 날짜를 찾아주는 무료 모임 날짜 조율 서비스, 투밋." />
+    <link rel="canonical" href="https://tomeet2.com/" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <meta property="og:site_name" content="투밋" />
+    <meta property="og:title" content="투밋 — 날짜 조율을 쉽게" />
+    <meta property="og:description" content="링크를 눌러 가능한 날짜를 선택해주세요!" />
+    <meta property="og:image" content="https://tomeet2.com/og-image.png" />
+    <meta property="og:url" content="https://tomeet2.com" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ko_KR" />
+
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LQ25JF3RW8"></script>
     <script>
@@ -9,21 +24,21 @@
       gtag('js', new Date());
       gtag('config', 'G-LQ25JF3RW8');
     </script>
-    <meta property="og:title" content="투밋 — 날짜 조율을 쉽게" />
-    <meta property="og:description" content="링크를 눌러 가능한 날짜를 선택해주세요!" />
-    <meta property="og:image" content="https://to-meet.vercel.app/og-image.png" />
-    <meta property="og:url" content="https://to-meet.vercel.app" />
-    <meta property="og:type" content="website" />
     <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"
   integrity="sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2vxfAAD0eZxzCKakxg55G4"
   crossorigin="anonymous"></script>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>tomeet</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- JS 실행 전/검색엔진용 소개 문구. React가 렌더링되면 대체됩니다. -->
+      <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f8f7ff;font-family:sans-serif;text-align:center;padding:1rem;box-sizing:border-box">
+        <h1 style="font-size:2rem;font-weight:600;color:#534AB7;margin-bottom:0.5rem">투밋</h1>
+        <p style="color:#888;font-size:1rem">모임 날짜를 쉽게 정해요</p>
+        <p style="color:#aaa;font-size:13px;line-height:1.6;max-width:320px">
+          링크 하나로 되는 날과 안 되는 날을 모아<br />모두 만날 수 있는 날짜를 찾아드려요.<br />회원가입 없이 무료로 쓸 수 있어요.
+        </p>
+      </div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

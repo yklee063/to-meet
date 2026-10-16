@@ -155,7 +155,7 @@ function Result() {
       content: {
         title: `${room?.name} 날짜 조율 완료!`,
         description,
-        imageUrl: 'https://to-meet.vercel.app/og-image.png',
+        imageUrl: 'https://tomeet2.com/og-image.png',
         link: { mobileWebUrl: resultUrl, webUrl: resultUrl },
       },
       buttons: [{ title: '결과 보러가기', link: { mobileWebUrl: resultUrl, webUrl: resultUrl } }],
