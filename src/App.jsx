@@ -4,8 +4,13 @@ import ShareRoom from './pages/ShareRoom'
 import CreateRoom from './pages/CreateRoom'
 import Room from './pages/Room'
 import Result from './pages/Result'
+import DomainMoved from './pages/DomainMoved'
+
+const OLD_HOST = 'to-meet.vercel.app'
 
 function App() {
+  if (window.location.hostname === OLD_HOST) return <DomainMoved />
+
   return (
     <BrowserRouter>
       <Routes>
