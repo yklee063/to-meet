@@ -26,7 +26,7 @@ const jsonLd = [
     operatingSystem: 'Web',
     inLanguage: 'ko',
     offers: { '@type': 'Offer', price: '0', priceCurrency: 'KRW' },
-    featureList: FEATURES.map(f => f.title),
+    featureList: FEATURES,
   },
   {
     '@context': 'https://schema.org',
@@ -62,7 +62,7 @@ const llms = `# 투밋 (tomeet)
 ${STEPS.map((s, i) => `${i + 1}. ${s.title}: ${s.desc}`).join('\n')}
 
 ## 특징
-${FEATURES.map(f => `- ${f.title}: ${f.desc}`).join('\n')}
+${FEATURES.map(f => `- ${f}`).join('\n')}
 
 ## 자주 묻는 질문
 ${FAQS.map(f => `### ${f.q}\n${f.a}`).join('\n\n')}
