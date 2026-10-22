@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { HOLIDAYS } from '../content/holidays'
+import { HOLIDAYS, isWeekendOrHoliday } from '../content/holidays'
 
 const KAKAO_JS_KEY = '65133d3f6b915284e9d3e9ae51522d50'
 
@@ -102,7 +102,7 @@ function Result() {
       for (let d = 1; d <= days; d++) {
         const dateKey = makeDateKey(year, month, d)
         const thisDate = new Date(year, month, d)
-        if (thisDate >= todayDate) {
+        if (thisDate >= todayDate && (!room?.weekend_only || isWeekendOrHoliday(dateKey, thisDate.getDay()))) {
           candidates.push({ dateKey, noCount: noCounts[dateKey] || 0, yesCount: yesCounts[dateKey] || 0 })
         }
       }
@@ -253,6 +253,11 @@ function Result() {
               const holiday = HOLIDAYS[dateKey]
               const isHoliday = !!holiday
               if (isPast) return <div key={day} style={{ aspectRatio: '1' }} />
+              if (room?.weekend_only && !isWeekendOrHoliday(dateKey, dow)) return (
+                <div key={day} style={{ aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: '11px', color: '#d4d4d8', lineHeight: 1 }}>{day}</span>
+                </div>
+              )
               const status = doneParts.length > 0 ? getStatus(dateKey) : 'none'
               const { bg, tc } = STATUS_STYLE[status]
               const noCount = getNoCount(dateKey)

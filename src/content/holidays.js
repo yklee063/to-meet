@@ -50,3 +50,6 @@ export const HOLIDAYS = {
   '2027-12-25': '성탄절',
   '2027-12-27': '대체공휴일',
 }
+
+// 주말·공휴일만 고르는 모임에서 선택 가능한 날인지
+export const isWeekendOrHoliday = (dateKey, dow) => dow === 0 || dow === 6 || !!HOLIDAYS[dateKey]

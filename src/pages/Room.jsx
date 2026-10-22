@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { HOLIDAYS } from '../content/holidays'
+import { HOLIDAYS, isWeekendOrHoliday } from '../content/holidays'
 
 function Room() {
   const { code } = useParams()
@@ -288,6 +288,12 @@ function Room() {
           ))}
         </div>
 
+        {room.weekend_only && (
+          <div style={{ background: '#EEEDFE', borderRadius: '10px', padding: '8px 12px', marginBottom: '0.75rem', fontSize: '12px', color: '#534AB7', fontWeight: '500' }}>
+            🗓 주말·공휴일만 고르는 모임이에요
+          </div>
+        )}
+
         {/* 달력 */}
         <div style={{ background: '#fff', borderRadius: '12px', padding: '0.5rem', border: '0.5px solid #e0e0e0', marginBottom: '0.75rem', boxSizing: 'border-box', width: '100%', overflow: 'hidden' }}>
           {(!isDone || isEditing) && (
@@ -335,6 +341,12 @@ function Room() {
               const isClickable = !isPast && (!isDone || isEditing)
 
               if (isPast) return <div key={day} style={{ aspectRatio: '1' }} />
+
+              if (room.weekend_only && !isWeekendOrHoliday(dateKey, dow)) return (
+                <div key={day} style={{ aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '6px', cursor: 'not-allowed' }}>
+                  <span style={{ fontSize: '11px', color: '#d4d4d8', lineHeight: 1 }}>{day}</span>
+                </div>
+              )
 
               const textColor = myTemp === 'no' ? '#dc2626'
                 : myTemp === 'yes' ? '#16a34a'

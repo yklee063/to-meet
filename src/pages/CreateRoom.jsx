@@ -6,13 +6,13 @@ function CreateRoom() {
   const navigate = useNavigate()
   const [roomName, setRoomName] = useState('')
   const [maxMembers, setMaxMembers] = useState('')
+  const [weekendOnly, setWeekendOnly] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const generateCode = () => Math.random().toString(36).substring(2, 8)
 
   const handleCreate = async () => {
-    if (!roomName.trim()) { setError('모임 이름을 입력해주세요'); return }
     if (maxMembers !== '' && (isNaN(maxMembers) || Number(maxMembers) < 2 || Number(maxMembers) > 50)) {
       setError('인원은 2명~50명 사이로 입력해주세요'); return
     }
@@ -24,7 +24,7 @@ function CreateRoom() {
 
     const { error: roomError } = await supabase
       .from('rooms')
-      .insert({ name: roomName.trim(), code, max_members: max })
+      .insert({ name: roomName.trim() || '모임', code, max_members: max, ...(weekendOnly && { weekend_only: true }) })
 
     if (roomError) { setError('방 만들기 실패: ' + roomError.message); setLoading(false); return }
 
@@ -57,12 +57,17 @@ function CreateRoom() {
         {/* 모임 이름 */}
         <label style={{ fontSize: '13px', color: '#666', display: 'block', marginBottom: '6px' }}>
           모임 이름
+          <span style={{
+            marginLeft: '6px', fontSize: '11px',
+            background: '#f0f0f0', color: '#888',
+            borderRadius: '999px', padding: '2px 8px'
+          }}>선택</span>
         </label>
         <input
           value={roomName}
           onChange={e => setRoomName(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleCreate()}
-          placeholder="예: 7월 번개 모임"
+          placeholder="모임"
           style={{
             width: '100%', padding: '10px 14px', borderRadius: '8px',
             border: '0.5px solid #ddd', fontSize: '14px',
@@ -92,9 +97,28 @@ function CreateRoom() {
             marginBottom: '6px', boxSizing: 'border-box'
           }}
         />
-        <div style={{ fontSize: '12px', color: '#aaa', marginBottom: '1.5rem' }}>
+        <div style={{ fontSize: '12px', color: '#aaa', marginBottom: '1rem' }}>
           설정하면 완료 현황을 계주 진행바로 표시해드려요
         </div>
+
+        {/* 주말·공휴일만 */}
+        <label style={{
+          display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer',
+          background: weekendOnly ? '#EEEDFE' : '#f8f7ff',
+          border: weekendOnly ? '0.5px solid #c5c2f0' : '0.5px solid #eee',
+          borderRadius: '10px', padding: '12px 14px', marginBottom: '1.5rem'
+        }}>
+          <input
+            type="checkbox"
+            checked={weekendOnly}
+            onChange={e => setWeekendOnly(e.target.checked)}
+            style={{ width: '18px', height: '18px', margin: '1px 0 0', accentColor: '#534AB7', flexShrink: 0 }}
+          />
+          <span>
+            <span style={{ display: 'block', fontSize: '14px', color: '#333', fontWeight: '500' }}>주말·공휴일만 선택 가능</span>
+            <span style={{ display: 'block', fontSize: '12px', color: '#aaa', marginTop: '2px' }}>참여자 달력에서 평일은 선택할 수 없게 막아둬요</span>
+          </span>
+        </label>
 
         {error && (
           <div style={{ color: '#e24b4a', fontSize: '13px', marginBottom: '1rem' }}>
