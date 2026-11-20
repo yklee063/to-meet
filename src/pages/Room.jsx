@@ -158,8 +158,13 @@ function Room() {
     const insertData = Object.entries(tempVotes).map(([date, status]) => ({
       participant_id: participant.id, room_id: room.id, voted_date: date, status
     }))
-    if (insertData.length > 0) await supabase.from('date_votes').insert(insertData)
-    await supabase.from('participants').update({ is_done: true }).eq('id', participant.id)
+    if (insertData.length > 0) {
+      const { error: voteError } = await supabase.from('date_votes').insert(insertData)
+      if (voteError) { alert('날짜 저장에 실패했어요. 잠시 후 다시 시도해주세요.'); setSubmitting(false); return }
+    }
+    const { data: updated, error: doneError } = await supabase
+      .from('participants').update({ is_done: true }).eq('id', participant.id).select()
+    if (doneError || !updated?.length) { alert('완료 처리에 실패했어요. 잠시 후 다시 시도해주세요.'); setSubmitting(false); return }
     setMyVotes(tempVotes)
     setIsDone(true)
     setIsEditing(false)
