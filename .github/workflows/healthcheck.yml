@@ -1,0 +1,25 @@
+name: 투밋 자동 점검
+
+on:
+  schedule:
+    - cron: '7 * * * *' # 매시간 7분 (UTC 기준, 한국 시간도 매시간 7분)
+  workflow_dispatch: # Actions 탭에서 직접 실행
+
+jobs:
+  healthcheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: 핵심 기능 점검
+        run: node scripts/healthcheck.js
+        env:
+          # 아래 두 값은 사이트 코드에도 들어 있는 공개 값
+          SUPABASE_URL: https://ydqxltuttkhdccrretsg.supabase.co
+          SUPABASE_PUBLISHABLE_KEY: sb_publishable_-bOP4H_3TvDwrTbT4gpSHQ_FY6Wguk8
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
