@@ -4,6 +4,15 @@ on:
   schedule:
     - cron: '7 * * * *' # 매시간 7분 (UTC 기준, 한국 시간도 매시간 7분)
   workflow_dispatch: # Actions 탭에서 직접 실행
+    inputs:
+      force_fail:
+        description: '이슈 생성 테스트용으로 일부러 실패시키기'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write # 실패 시 이슈 생성, 복구 시 이슈 닫기
 
 jobs:
   healthcheck:
@@ -17,9 +26,50 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - name: 핵심 기능 점검
-        run: node scripts/healthcheck.js
+        run: |
+          set -o pipefail
+          node scripts/healthcheck.js 2>&1 | tee healthcheck.log
         env:
           # 아래 두 값은 사이트 코드에도 들어 있는 공개 값
           SUPABASE_URL: https://ydqxltuttkhdccrretsg.supabase.co
           SUPABASE_PUBLISHABLE_KEY: sb_publishable_-bOP4H_3TvDwrTbT4gpSHQ_FY6Wguk8
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          FORCE_FAIL: ${{ inputs.force_fail }}
+
+      # 실패하면 '자동점검' 이슈를 만든다. 이미 열린 이슈가 있으면 실패 내용이 달라졌을 때만 댓글을 단다.
+      - name: 실패 이슈 만들기
+        if: failure()
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs')
+            const log = fs.existsSync('healthcheck.log') ? fs.readFileSync('healthcheck.log', 'utf8').trim() : '(점검 로그 없음 — 점검 전 단계에서 실패)'
+            const failed = log.split('\n').filter(l => l.startsWith('❌')).join('\n') || log.split('\n').slice(-5).join('\n')
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            const now = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })
+            const body = `**${now}** 자동 점검 실패\n\n실패 항목:\n\`\`\`\n${failed}\n\`\`\`\n\n<details><summary>전체 점검 로그</summary>\n\n\`\`\`\n${log}\n\`\`\`\n</details>\n\n실행 기록: ${runUrl}`
+
+            const { data: open } = await github.rest.issues.listForRepo({ ...context.repo, state: 'open', labels: '자동점검' })
+            if (open.length === 0) {
+              await github.rest.issues.create({ ...context.repo, title: `🚨 자동 점검 실패: ${failed.split('\n')[0].replace('❌ ', '')}`, body, labels: ['자동점검'] })
+              return
+            }
+            const issue = open[0]
+            const { data: comments } = await github.rest.issues.listComments({ ...context.repo, issue_number: issue.number, per_page: 100 })
+            const lastBody = comments.length ? comments[comments.length - 1].body : issue.body
+            if (!lastBody.includes('```\n' + failed + '\n```')) {
+              await github.rest.issues.createComment({ ...context.repo, issue_number: issue.number, body: `실패 내용이 바뀌었어요.\n\n${body}` })
+            }
+
+      # 다시 통과하면 열려 있는 '자동점검' 이슈를 닫는다.
+      - name: 복구되면 이슈 닫기
+        if: success()
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const { data: open } = await github.rest.issues.listForRepo({ ...context.repo, state: 'open', labels: '자동점검' })
+            const now = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })
+            for (const issue of open) {
+              await github.rest.issues.createComment({ ...context.repo, issue_number: issue.number, body: `✅ **${now}** 점검이 다시 통과해서 자동으로 닫아요.` })
+              await github.rest.issues.update({ ...context.repo, issue_number: issue.number, state: 'closed' })
+            }

@@ -85,6 +85,7 @@ async function cleanup({ roomId, participantId }) {
 
 const ids = {}
 try {
+  if (process.env.FORCE_FAIL === 'true') check(false, '테스트용 강제 실패 (Run workflow에서 선택)')
   await checkSite()
   await checkFlow(ids)
 } catch (e) {
